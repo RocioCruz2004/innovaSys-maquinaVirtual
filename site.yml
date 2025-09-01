@@ -1,0 +1,7 @@
+---
+- name: Servidor InnovaSys - Apache + Samba
+  hosts: innovasys
+  become: yes
+  roles:
+    - apache
+    - samba

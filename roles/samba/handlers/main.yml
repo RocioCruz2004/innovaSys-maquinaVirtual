@@ -1,0 +1,5 @@
+---
+- name: restart samba
+  ansible.builtin.service:
+    name: "{{ samba_service }}"
+    state: restarted

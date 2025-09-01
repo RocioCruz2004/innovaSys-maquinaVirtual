@@ -1,0 +1,16 @@
+[global]
+   workgroup = WORKGROUP
+   server string = %h (Samba, Ubuntu)
+   log file = /var/log/samba/log.%m
+   max log size = 1000
+   server role = standalone server
+   map to guest = bad user
+   dns proxy = no
+
+[{{ samba_share_name }}]
+   path = {{ samba_share_path }}
+   browsable = yes
+   writable = yes
+   create mask = 0660
+   directory mask = 0770
+   valid users = @{{ samba_group }}

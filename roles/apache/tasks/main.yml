@@ -1,0 +1,21 @@
+---
+- name: Instalar Apache
+  ansible.builtin.apt:
+    name: "{{ apache_pkg }}"
+    state: present
+    update_cache: yes
+
+- name: Plantillar index.html personalizado
+  ansible.builtin.template:
+    src: index.html.j2
+    dest: "{{ apache_index_dest }}"
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart apache
+
+- name: Asegurar servicio Apache habilitado y activo
+  ansible.builtin.service:
+    name: "{{ apache_service }}"
+    state: started
+    enabled: yes

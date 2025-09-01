@@ -1,0 +1,53 @@
+---
+- name: Instalar Samba
+  ansible.builtin.apt:
+    name: "{{ samba_pkg }}"
+    state: present
+    update_cache: yes
+
+- name: Crear grupo de desarrolladores
+  ansible.builtin.group:
+    name: "{{ samba_group }}"
+    state: present
+
+- name: Crear usuario del sistema sin shell
+  ansible.builtin.user:
+    name: "{{ samba_user }}"
+    shell: "{{ samba_user_shell }}"
+    groups: "{{ samba_group }}"
+    append: yes
+    create_home: no
+    system: yes
+    state: present
+
+- name: Crear carpeta compartida
+  ansible.builtin.file:
+    path: "{{ samba_share_path }}"
+    state: directory
+    owner: root
+    group: "{{ samba_group }}"
+    mode: '0770'
+
+- name: Plantillar configuración de Samba
+  ansible.builtin.template:
+    src: smb.conf.j2
+    dest: /etc/samba/smb.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart samba
+
+- name: Crear/actualizar contraseña de Samba para el usuario
+  ansible.builtin.shell: |
+    set -o pipefail
+    (echo "{{ samba_user_pass }}"; echo "{{ samba_user_pass }}") | smbpasswd -s -a "{{ samba_user }}"
+  args:
+    executable: /bin/bash
+  register: smbpass_out
+  changed_when: "'Added user' in smbpass_out.stdout or 'Changed password' in smbpass_out.stdout"
+
+- name: Asegurar servicio smbd activo y habilitado
+  ansible.builtin.service:
+    name: "{{ samba_service }}"
+    state: started
+    enabled: yes
